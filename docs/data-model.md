@@ -168,7 +168,88 @@ Carried forward from legacy `Booking` entity (182 lines). Key fields:
 
 ---
 
-## 3. Supporting Entities (carried forward with TenantId)
+## 3. New Entities (from ChatGPT pack merge)
+
+### Customer (NEW — replaces inline passenger details)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| Id | int | Identity PK |
+| TenantId | GUID | |
+| Name | nvarchar(250) | |
+| Phone | nvarchar(20) | Primary lookup key |
+| Email | nvarchar(250) | |
+| AccountType | int | Enum: Casual, Regular, BusinessAccount |
+| DefaultAccountId | int? | FK to Account (for business customers) |
+| DefaultPickupNotes | nvarchar(500) | |
+| MarketingSource | nvarchar(100) | How they found us (web, phone, referral, WhatsApp) |
+| Notes | nvarchar(2000) | |
+| IsActive | bit | |
+| CreatedAt | datetime2 | |
+
+Booking.CustomerId (NEW nullable FK) links to this. Legacy bookings keep inline passenger fields; new bookings populate both.
+
+### PartnerRelationship (NEW)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| Id | int | Identity PK |
+| TenantId | GUID | Source tenant |
+| PartnerTenantId | GUID | Partner tenant |
+| Status | int | Enum: Pending, Active, Suspended, Terminated |
+| CoverageRules | nvarchar(max) | JSON: areas, times, vehicle types covered |
+| CommercialTerms | nvarchar(max) | JSON: settlement model, rates |
+| Priority | int | Escalation order (1 = first choice partner) |
+| CreatedAt | datetime2 | |
+
+### CoverRequest (NEW)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| Id | int | Identity PK |
+| SourceTenantId | GUID | Tenant requesting cover |
+| TargetTenantId | GUID | Partner being asked |
+| BookingId | int | FK to Booking |
+| Status | int | Enum: Requested, Accepted, Declined, Expired, Cancelled |
+| OfferedPrice | decimal(18,2) | Price offered to partner |
+| Notes | nvarchar(500) | |
+| RequestedAt | datetime2 | |
+| RespondedAt | datetime2? | |
+| RespondedByUserId | int? | |
+
+### SettlementRecord (NEW)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| Id | int | Identity PK |
+| BookingId | int | FK to Booking |
+| SourceTenantId | GUID | Tenant who owns the booking |
+| FulfillingTenantId | GUID | Tenant who fulfilled it |
+| DriverId | int | Driver who did the job |
+| GrossAmount | decimal(18,2) | Total customer/account charge |
+| PartnerAmount | decimal(18,2) | Amount paid to partner |
+| CommissionAmount | decimal(18,2) | Platform or source commission |
+| SettlementModel | int | Enum: ReferralFee, PercentageSplit, NetFulfilment, PassThrough |
+| SettlementStatus | int | Enum: Pending, Invoiced, Paid, Disputed |
+| CreatedAt | datetime2 | |
+
+### SavedAddress (NEW)
+
+| Column | Type | Notes |
+|--------|------|-------|
+| Id | int | Identity PK |
+| TenantId | GUID | |
+| CustomerId | int? | FK to Customer (null = tenant-wide) |
+| Label | nvarchar(100) | e.g. "Home", "Office", "Mum's house" |
+| Address | nvarchar(250) | |
+| PostCode | nvarchar(9) | |
+| Lat | decimal(10,6)? | |
+| Lng | decimal(10,6)? | |
+| Type | int | Enum: Customer, POI, Account |
+
+---
+
+## 4. Supporting Entities (carried forward with TenantId)
 
 All existing entities get a `TenantId GUID` column with a global query filter.
 

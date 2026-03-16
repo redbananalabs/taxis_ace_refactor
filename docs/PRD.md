@@ -204,38 +204,200 @@ Drivers may have availability patterns like "AM School Only" or "PM School Run" 
 
 Drivers from other taxi companies who take Ace jobs. Same as normal drivers in the system but flagged as substitutes. Same payment rules, same dispatch workflow. The flag enables separate reporting and filtering.
 
+**Important distinction:** Substitute drivers are NOT the same as partner-company coverage. A substitute is a person temporarily operating under the tenant's dispatch control. Partner coverage is a booking fulfilled by another company entirely. These need different records, permissions, and settlement logic.
+
 ---
 
-## 11. Implementation Phases
+## 11. Partner Network / Cross-Tenant Job Sharing
+
+Taxi companies frequently need to share work — own fleet at capacity, geographic convenience, out-of-area pickups, night/weekend coverage, or reciprocal agreements.
+
+### Partner Model
+- Each tenant can register partner relationships with other tenants on the platform
+- Partners have defined coverage rules and commercial terms
+- Partner data is isolated — no accidental cross-tenant data leakage
+
+### Cover Request Flow
+1. Source tenant's dispatcher (or auto-escalation rule) creates a cover request
+2. Target tenant receives the request with booking details and offered price
+3. Target tenant accepts or declines
+4. If accepted, target tenant dispatches from their own fleet
+5. Source tenant retains visibility into job progress (appropriate to relationship level)
+6. Settlement record generated per agreed rules
+
+### Settlement Models
+- Fixed referral fee (e.g. £5 per job)
+- Percentage split (e.g. source keeps 15%, partner gets 85%)
+- Net fulfilment price (partner quotes their price, source marks up to customer)
+- Account customer pass-through (account rate applies, split agreed separately)
+
+### No-Driver Escalation Path
+1. Internal driver pool exhausted
+2. Substitute driver pool checked (if configured)
+3. Partner companies offered the job (priority order or broadcast)
+4. If no partner accepts within timeout, booking flagged as unallocated exception
+
+---
+
+## 12. Dispatch Scoring Engine
+
+Beyond manual dispatch, the system supports assisted and (future) automatic dispatch using a weighted scoring model.
+
+### Candidate Scoring Inputs
+- Driver availability state (gate: must be eligible)
+- Vehicle compatibility (gate: must match requirements)
+- Estimated distance to pickup
+- Estimated time to pickup (ETA)
+- Driver shift status and remaining hours
+- Recent workload / fairness balancing
+- Customer-driver affinity (if repeat customer has preferred driver)
+- Job priority level
+- Penalty for recently declined jobs
+- Partner option only after internal scores fall below threshold or timeout
+
+### Dispatch Flow
+1. Booking becomes dispatchable
+2. System validates booking completeness
+3. Internal driver candidate pool generated
+4. Scores calculated per above inputs
+5. Dispatcher sees ranked recommendations (or system auto-assigns if policy permits)
+6. If no viable internal driver → escalate (substitute → partner → unallocated exception)
+7. Assigned driver notified
+8. Booking state updated through lifecycle
+
+For v1: manual dispatch with scored suggestions displayed. Auto-dispatch is Phase 3+.
+
+---
+
+## 13. White-Label Booking Websites
+
+Each tenant can have one or more branded booking websites that feed directly into the dispatch system.
+
+### Website → Dispatch Pipeline
+1. Customer lands on tenant's branded website (SEO-optimised route/area pages)
+2. Customer requests a quote or books directly
+3. Booking data posts into the dispatch platform via API
+4. Operator confirms (or future: automated acceptance rules)
+5. Booking enters dispatch queue
+
+### SEO Strategy
+- Auto-generated landing pages per route (e.g. "Taxi from Shaftesbury to Bristol Airport")
+- Local area pages for organic search
+- Structured data for Google search visibility
+- Each page has an embedded booking form that feeds into the platform
+
+### Commercial Value
+Combining lead generation websites + booking conversion + dispatch fulfilment + reporting creates a stronger SaaS than dispatch alone. This is a key differentiator.
+
+For v1: API endpoint for website booking ingestion. White-label website builder is Phase 4+.
+
+---
+
+## 14. Customer Directory
+
+Unlike the legacy system (which stores passenger details directly on bookings), Red Taxi introduces a proper Customer entity.
+
+### Customer Record
+- Name, phone, email
+- Account type (casual, regular, business account)
+- Default pickup notes / preferences
+- Saved addresses
+- Marketing source (how they found us)
+- Booking history (derived)
+- Notes
+
+### Benefits
+- Phone lookup instantly populates booking form (existing "Lookup" feature, but backed by a real customer record)
+- Repeat customer recognition
+- Account customer linking
+- Marketing source tracking for website-generated leads
+- Future: customer self-service portal, loyalty
+
+---
+
+## 15. WhatsApp Chatbot Booking Channel (Phase 2+)
+
+Customers can book taxis via WhatsApp conversation with an AI-powered chatbot.
+
+### Flow
+1. Customer messages the tenant's WhatsApp Business number
+2. Chatbot greets customer, asks for pickup and destination
+3. Bot extracts addresses, validates, calls pricing engine for quote
+4. Customer confirms booking
+5. Booking created in dispatch system as a WebBooking (pending or auto-accepted based on config)
+6. Customer receives confirmation message with booking details
+7. On dispatch: driver allocated notification sent via same WhatsApp thread
+8. Driver arrival / journey updates sent conversationally
+
+### Chatbot Capabilities
+- Natural language address extraction
+- Price quoting
+- Booking creation and confirmation
+- Booking status enquiry ("Where's my taxi?")
+- Cancellation requests
+- Handoff to human operator for complex queries
+
+### Technical Approach
+- WhatsApp Business API (existing Twilio integration)
+- AI layer (Claude or similar) for conversation management
+- Structured tool calls to booking/pricing APIs
+- Conversation state managed per customer phone number
+- Falls back to operator notification if bot confidence is low
+
+For v1: WhatsApp remains one-way notifications only. Chatbot booking is Phase 2/3.
+
+---
+
+## 16. Implementation Phases
 
 ### Phase 1 — Core Dispatch (Weeks 1-4)
 - Backend: Booking CRUD, pricing engine, driver availability, dispatch/allocation
+- Customer directory with phone lookup
 - Blazor dispatch console: booking form, diary view, availability grid, driver status
 - Auth: JWT + Identity with role-based access
 - Database: EF Core migrations from legacy schema + TenantId column
 
-### Phase 2 — Accounts & Messaging (Weeks 5-6)
+### Phase 2 — Accounts, Messaging & Web Portal (Weeks 5-6)
 - Account management, invoicing, statements, credit notes
-- SMS/WhatsApp/Push notification system
+- SMS/WhatsApp/Push notification system (one-way)
 - Payment link integration (Revolut)
 - Customer web booking portal
+- Substitute driver flagging and reporting
 
 ### Phase 3 — Driver App & Reporting (Weeks 7-8)
 - Flutter driver app: login, jobs, accept/reject, navigation, GPS tracking, document upload
 - Reporting module: earnings, profitability, booking breakdowns, VAT
+- Dispatch scoring engine (assisted suggestions for operators)
 
 ### Phase 4 — SaaS & Migration (Weeks 9-12)
 - Tenant import wizard (Ace SQL Server → Red Taxi)
 - Tenant provisioning workflow
 - Tenant-level config: branding, tariffs, messaging templates
 - Subscription billing integration
+- SaaS packaging: Starter / Growth / Professional / Enterprise tiers
 
-### Phase 5+ — AI & Growth (Future)
-- AI voice booking agent
-- AI dispatch suggestions
+### Phase 5 — Partner Network & Job Sharing (Weeks 13-16)
+- Partner company registry and relationship management
+- Cover request workflow (create, accept, decline)
+- Cross-tenant job assignment with visibility controls
+- Settlement engine: referral fee, percentage split, net fulfilment
+- Partner job audit trail and reporting
+- No-driver escalation path (internal → substitute → partner)
+
+### Phase 6 — White-Label Websites & Booking Channels (Weeks 17-20)
+- Public booking API for website ingestion
+- WhatsApp chatbot booking channel (AI-powered conversational booking)
+- White-label website builder (SEO route pages, area pages, embedded booking forms)
+- Booking source tracking and attribution reporting
+
+### Phase 7+ — AI & Growth (Future)
+- AI voice booking agent (phone intake)
+- Auto-dispatch (fully automated assignment based on scoring engine)
 - Dynamic pricing engine
 - Demand forecasting
 - Driver monitoring/scoring
+- AI operator copilot (natural language queries, anomaly detection)
+- Proactive partner coverage recommendations
 
 ---
 

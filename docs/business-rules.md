@@ -325,3 +325,105 @@ Invoices can be credited (partially or fully). Creates a `CreditNote` linked to 
 ### 9.3 Amendments & Cancellations
 
 Account customers can request changes to existing bookings. These create `WebAmendmentRequest` records that operators review and accept/reject.
+
+---
+
+## 10. Partner Network / Job Sharing Rules
+
+### 10.1 Partner Relationship Setup
+
+Partners are other taxi companies on the Red Taxi platform. Each partner relationship is bilateral — Tenant A partners with Tenant B, creating two PartnerRelationship records (one per direction). Each side defines their own coverage rules and commercial terms.
+
+### 10.2 Cover Request Rules
+
+| Rule | Description |
+|------|-------------|
+| Eligibility | Only bookings from tenant's own customers can be offered for cover |
+| Data exposure | Partner sees: pickup, destination, time, vehicle requirement, passenger count. Does NOT see: customer phone/email, account details, pricing to customer |
+| Timeout | Cover request expires if not accepted within configurable timeout (default 15 min) |
+| Broadcast vs directed | Configurable: offer to specific partner (priority order) or broadcast to all partners |
+| Auto-escalation | If no internal driver available within X minutes, system can auto-create cover request |
+
+### 10.3 Settlement Rules
+
+Each partner relationship defines a settlement model:
+
+| Model | Description | Example |
+|-------|-------------|---------|
+| Referral fee | Source pays fixed fee per job | Source pays partner £5 per job |
+| Percentage split | Source keeps %, partner gets % | Source keeps 15%, partner gets 85% of fare |
+| Net fulfilment | Partner quotes their price, source marks up | Partner charges £30, source charges customer £38 |
+| Pass-through | Account rate applies, split agreed separately | For shared account customers |
+
+Settlement records are created on job completion and feed into inter-company invoicing.
+
+### 10.4 Substitute vs Partner — Key Differences
+
+| Aspect | Substitute Driver | Partner Coverage |
+|--------|------------------|-----------------|
+| Control | Tenant dispatches directly | Partner tenant dispatches their own driver |
+| Visibility | Full visibility (like own driver) | Limited visibility (booking progress only) |
+| Settlement | Same as own driver (commission model) | Inter-company settlement per agreed terms |
+| Reporting | Appears in tenant's driver reports (flagged) | Appears in partner reports separately |
+| Permissions | Operates under tenant's rules | Operates under partner's rules |
+
+---
+
+## 11. Dispatch Scoring Rules
+
+### 11.1 Scoring Gates (must pass)
+
+- Driver availability: must be in Available state
+- Vehicle compatibility: must match booking requirements (vehicle type, capacity, wheelchair, etc.)
+- Shift status: must have remaining hours if shift tracking enabled
+
+### 11.2 Scoring Factors (weighted)
+
+| Factor | Weight | Description |
+|--------|--------|-------------|
+| Distance to pickup | 30% | Closer = higher score |
+| ETA to pickup | 25% | Faster = higher score |
+| Workload balance | 15% | Fewer recent jobs = higher score (fairness) |
+| Customer affinity | 10% | Repeat customer's preferred driver gets bonus |
+| Priority handling | 10% | High-priority bookings boost nearby drivers |
+| Decline penalty | 10% | Recently declined jobs reduce score |
+
+Weights are tenant-configurable. Operators always see the top 3 recommendations but can override.
+
+### 11.3 Auto-Dispatch Rules (Phase 3+)
+
+- Configurable per tenant: manual only, assisted (show suggestions), or auto (system assigns)
+- Auto-dispatch only fires if top candidate score exceeds confidence threshold
+- Auto-assigned driver must respond within timeout (configurable, default 2 min)
+- If no response, job falls back to next candidate or operator queue
+
+---
+
+## 12. WhatsApp Chatbot Rules (Phase 2+)
+
+### 12.1 Conversation Flow
+
+1. Customer sends any message to tenant's WhatsApp number
+2. Bot replies with greeting + "Where would you like to be picked up?"
+3. Customer provides pickup (free text) → bot extracts/validates address
+4. Bot asks "Where are you going?"
+5. Customer provides destination → bot extracts/validates
+6. Bot calls pricing engine → replies with quote
+7. Customer confirms ("yes" / "book it" / etc.)
+8. Bot creates WebBooking, sends confirmation with booking reference
+9. On allocation: bot sends driver details to customer in same thread
+10. On arrival: bot notifies customer
+
+### 12.2 Fallback Rules
+
+- If bot can't extract a valid address after 2 attempts → hand off to operator
+- If customer asks a question the bot can't handle → hand off to operator
+- Operator can take over any conversation at any time
+- Bot logs full conversation for audit
+
+### 12.3 Tenant Configuration
+
+- Enable/disable chatbot per tenant
+- Custom greeting message
+- Auto-accept bookings or require operator approval
+- Operating hours (outside hours: bot takes booking, flags for next-day confirmation)

@@ -83,6 +83,18 @@ src/
 │   │   ├── Commands/               # CreateWebBooking, AcceptWebBooking, RejectWebBooking, RequestAmendment
 │   │   ├── Queries/                # GetWebBookings, GetAccountActiveBookings
 │   │   └── Events/                 # WebBookingSubmitted, WebBookingAccepted
+│   ├── Partners/
+│   │   ├── Commands/               # RegisterPartner, CreateCoverRequest, AcceptCover, DeclineCover, CreateSettlement
+│   │   ├── Queries/                # GetPartners, GetCoverRequests, GetPartnerJobs, GetSettlements
+│   │   └── Events/                 # CoverRequested, CoverAccepted, CoverDeclined, SettlementCreated
+│   ├── Customers/
+│   │   ├── Commands/               # CreateCustomer, UpdateCustomer, SaveAddress
+│   │   ├── Queries/                # LookupByPhone, GetCustomer, GetSavedAddresses
+│   │   └── DTOs/
+│   ├── WhatsAppBot/
+│   │   ├── Commands/               # ProcessInboundMessage, CreateBotBooking, HandoffToOperator
+│   │   ├── Queries/                # GetConversationState
+│   │   └── Services/               # ConversationManager, AddressExtractor, BotResponseGenerator
 │   ├── Identity/
 │   │   ├── Commands/               # Register, Login, RefreshToken, ResetPassword
 │   │   └── Queries/                # GetUser, ListUsers
