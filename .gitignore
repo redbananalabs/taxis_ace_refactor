@@ -15,3 +15,14 @@
 # OS files
 .DS_Store
 Thumbs.db
+
+# Environment
+.env
+
+# Docker volumes
+sqldata/
+redisdata/
+
+# Certificates
+nginx/certs/*.pem
+nginx/certs/*.key

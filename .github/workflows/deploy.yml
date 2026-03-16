@@ -1,0 +1,70 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'tests/**', 'docker-compose.yml', 'Dockerfile']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'tests/**']
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/redtaxi
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore src/RedTaxi.sln
+
+      - name: Build
+        run: dotnet build src/RedTaxi.sln --no-restore -c Release
+
+      - name: Test
+        run: dotnet test src/RedTaxi.sln --no-build -c Release --verbosity normal
+
+  deploy:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest,${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Hetzner VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/redtaxi
+            docker compose pull
+            docker compose up -d --remove-orphans
+            docker image prune -f
