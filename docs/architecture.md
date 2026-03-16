@@ -243,3 +243,57 @@ The API contract should be committed to the repo as the source of truth:
 - Auto-generated on build via CI
 - Used for: client code generation (Flutter, customer portal), regression testing, documentation
 - Smoke/parity tests can compare v1 and v2 endpoint responses using HAR recordings from the legacy system
+
+---
+
+## 11. Reporting Strategy
+
+### Decision: Syncfusion Blazor Components over Bold Reports for v1
+
+Bold Reports is overkill for v1. Every report on the list is a filtered data grid or chart — not a pixel-perfect paginated report. Use what's already in the Blazor Syncfusion stack:
+
+| Need | Tool | Notes |
+|------|------|-------|
+| Tabular reports | `SfDataGrid` | Sorting, filtering, grouping, column templates, export to Excel/CSV |
+| Charts (revenue, profitability, growth) | `SfChart` | Bar, line, pie, area charts with drill-down |
+| Dashboard KPI cards | Blazor components | Simple card components with real-time SignalR updates |
+| Invoice/Statement PDFs | QuestPDF | Already used in legacy, proven |
+| Credit note PDFs | QuestPDF | Same template engine |
+| CSV export | Simple API endpoint | Streaming CSV from EF query |
+
+Bold Reports (Community License) can be added in Phase 4+ if tenants want a custom report designer for their own reports. For v1, all 18 reports (3 driver, 9 booking, 6 financial) are built as Blazor pages with `SfDataGrid` + `SfChart`.
+
+---
+
+## 12. Custom Dispatch UI Components (Blazor)
+
+These require custom Blazor component development beyond standard Syncfusion controls:
+
+### Drag-and-Drop Booking Reallocation
+- Operator drags a booking block from one driver column to another on the Scheduler/Diary
+- Drop triggers `AllocateBooking` command (MediatR) with new driver ID
+- Previous driver receives unallocation notification
+- New driver receives allocation notification
+- Syncfusion `SfSchedule` supports drag-and-drop events natively — hook into `OnActionCompleted`
+
+### School Run Merge (Drag to Combine)
+- When Merge Mode is enabled (toggle in top bar), dragging booking A onto booking B triggers merge logic
+- Preconditions validated: both school-run tagged, same destination, same account
+- Booking A's pickup becomes a via on booking B
+- Booking A marked as merged
+- Price recalculates on booking B
+- This is CUSTOM logic on top of `SfSchedule` — needs a custom drag handler that detects overlap and shows a merge confirmation dialog
+
+### Real-Time SignalR Updates
+- All dispatch console users see live updates without page refresh
+- Events pushed via SignalR hub: BookingCreated, BookingAllocated, BookingCancelled, BookingCompleted, DriverStatusChanged, DriverGPSUpdated
+- Blazor Server has built-in SignalR — no extra wiring needed
+- `SfSchedule` data source is refreshed on each SignalR event
+- Dashboard KPI cards update in real-time
+- Tracking map updates driver positions every 5-10 seconds
+
+### Booking Form ↔ Map/Price Panel Interaction
+- Right-hand panel (Map tab) updates live as operator types in the booking form
+- Entering pickup + destination triggers: Google Distance Matrix call → price calculation → route display on map
+- Price panel shows: Journey Cost, Charge From Base, Journey Time, Journey Mileage (dead + trip), Tariff applied
+- This is a reactive Blazor component pattern — booking form state drives the price panel via shared service/state
