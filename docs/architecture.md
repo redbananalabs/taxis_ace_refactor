@@ -208,3 +208,38 @@ GitHub Actions: build → test → Docker image → push to container registry �
 ```
 
 The v1 surface exists only for the transition period while the Ace frontend migrates to Blazor. Once migration is complete, v1 is deprecated.
+
+---
+
+## 9. Background Job Processing
+
+### Decision: Hangfire over RabbitMQ for v1
+
+The legacy system uses RabbitMQ for message queuing (e.g. SMS gateway polling). For Red Taxi v1, **Hangfire** is recommended instead:
+
+- Simpler to operate (no separate message broker to manage)
+- Built-in dashboard for monitoring jobs
+- SQL Server backed (no additional infrastructure)
+- Supports delayed/scheduled jobs natively
+- Good enough for v1 scale (100+ drivers, 1000+ daily bookings per tenant)
+
+RabbitMQ or Azure Service Bus can be introduced later if throughput demands exceed what Hangfire handles.
+
+### Job Types
+- Scheduled SMS/WhatsApp sending
+- Job offer retry logic (configurable delay between attempts)
+- Invoice batch generation
+- Driver document expiry alerts
+- GPS history cleanup
+- Reporting pre-computation
+
+---
+
+## 10. OpenAPI Contract
+
+The API contract should be committed to the repo as the source of truth:
+
+- `docs/openapi/v2.json` — generated from ASP.NET Core Swagger
+- Auto-generated on build via CI
+- Used for: client code generation (Flutter, customer portal), regression testing, documentation
+- Smoke/parity tests can compare v1 and v2 endpoint responses using HAR recordings from the legacy system

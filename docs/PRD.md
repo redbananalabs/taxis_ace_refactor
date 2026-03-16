@@ -557,3 +557,63 @@ Table of cancel-on-arrival records: COA Date/Time, Journey Date/Time, Pickup Add
 
 ### Top Bar
 Ticket Raise, NO (turn-down), Text Message, Search, notification bell, Logout. Confirm SA (Confirm Soft Allocates) button.
+
+---
+
+## 25. Complete Booking Sources
+
+All channels through which bookings can enter the system:
+
+| # | Source | Phase | Description |
+|---|--------|-------|-------------|
+| 1 | Operator phone entry | 1 | Dispatcher creates booking during/after phone call |
+| 2 | Dispatch console direct | 1 | Operator creates booking proactively |
+| 3 | Customer web portal | 2 | Account customers submit via branded portal |
+| 4 | Cash web booking | 2 | Public customers via website booking form |
+| 5 | Repeat from phone lookup | 1 | Operator selects previous booking from caller ID popup |
+| 6 | Rank pickup (driver-created) | 1 | Driver records rank job after pickup |
+| 7 | Recurring booking engine | 1 | System auto-generates from repeat booking rules |
+| 8 | White-label website | 6 | SEO landing page booking forms |
+| 9 | External API integration | 6 | Booking.com, hotel systems, travel platforms |
+| 10 | WhatsApp AI chatbot | 6 | Customer messages WhatsApp, AI creates booking |
+| 11 | AI voice agent (phone) | 7+ | AI answers phone call, captures booking details |
+| 12 | CMAC integration | Future | Corporate taxi network partner bookings |
+| 13 | Mobile app (customer) | Future | Customer mobile app direct booking |
+| 14 | Driver-entered booking | 3 | Driver creates booking via driver app |
+
+---
+
+## 26. Address Geolocation
+
+All addresses in the system should store latitude and longitude alongside the text address and postcode.
+
+### Uses
+- Dispatch accuracy (distance-to-pickup calculation)
+- Demand heatmaps and analytics
+- Route visualisation on map
+- ETA calculation
+- Geofence matching (airport zones, coverage areas)
+
+### Implementation
+- Geocode on address entry (via Google Places / Ideal Postcodes)
+- Store lat/lng on Booking (pickup + destination), BookingVia, LocalPOI, SavedAddress
+- Legacy `DriverLocationHistory` already stores lat/lng for GPS tracking
+
+---
+
+## 27. Naming Convention: "Scope" → "Work Type"
+
+The legacy system uses "Scope" for the booking payment type (Cash/Account/Rank/Card). This is unclear terminology.
+
+**Recommendation for Red Taxi:** Rename to **Work Type** or **Booking Type** in all new UI and API contracts. The underlying enum values remain the same for backward compatibility with the import wizard. The Blazor dispatch console should display "Work Type" in the UI dropdown (currently shows "scope:").
+
+---
+
+## 28. AI Route Intelligence (Phase 7+)
+
+AI analyses booking data and demand patterns to suggest:
+- High-demand routes that should have landing pages
+- Profitable destinations for targeted marketing
+- New SEO pages to auto-generate
+- Pricing optimisation opportunities (routes where competitors charge more)
+- Time-of-day demand patterns for driver shift planning

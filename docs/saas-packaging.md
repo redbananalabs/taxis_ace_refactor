@@ -142,3 +142,24 @@ The platform must support:
 - **Partner network** is a natural Professional+ feature — it creates network effects
 - **AI features** are premium differentiators for Professional/Enterprise
 - **White-label websites** are high-value and sticky — they generate leads that lock operators into the platform
+
+---
+
+## 7. Alternative Pricing Models
+
+Beyond the tiered model, the platform should support:
+
+### Per-Booking Pricing
+Small fee per completed booking (£0.30–£1.00). Useful for operators with fluctuating demand who don't want fixed monthly costs.
+
+### Hybrid Pricing
+Base subscription + per-booking fee. Example: £99/month + £0.50 per booking. Combines predictable revenue with usage-based scaling.
+
+### Per-Driver Pricing
+Monthly fee based on active driver count:
+- Up to 10 drivers: £99/month
+- Up to 50 drivers: £299/month
+- Unlimited: £599/month
+
+### Recommendation
+Start with tiered (Starter/Growth/Professional/Enterprise) for v1 SaaS launch. Add per-booking and hybrid models in Phase 5+ once usage patterns are understood from real tenants.

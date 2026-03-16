@@ -499,3 +499,150 @@ Advanced search modal with fields:
 - Details (free text)
 
 All fields are optional — search matches any combination provided.
+
+---
+
+## 15. Rank Job Workflow
+
+Rank work is when a driver waits at a taxi rank and picks up a passenger directly (no pre-booking).
+
+### Flow
+1. Driver at taxi rank picks up a passenger
+2. Driver records the job in the system (enters destination, passenger details)
+3. Driver enters the final price after completing the journey
+4. Job is logged as Scope = Rank
+5. Operator takes commission from the driver at settlement time (same as cash jobs)
+
+Rank jobs are effectively driver-created bookings. The dispatch system does not allocate these — the driver self-reports them.
+
+---
+
+## 16. Dispatch Board Visual Behaviour
+
+The scheduler/diary view uses visual cues to show booking status:
+
+| State | Visual | Description |
+|-------|--------|-------------|
+| Unallocated | Orange/brown block | No driver assigned |
+| Allocated | Driver's colour (solid fill) | Assigned to driver, not yet accepted |
+| Accepted | Driver's colour + crosshatch pattern | Driver accepted the job |
+| Rejected | `[R]` prefix on booking text | Driver rejected — should show WHICH driver |
+| Timed out | `[RT]` prefix on booking text | Driver did not respond within timeout |
+| Completed | Driver's colour + striped/hatched pattern | Job finished |
+| COA | Red banner at top of day | Cancel on arrival — shows passenger name |
+
+Each driver has a unique `ColorCodeRGB` value used throughout the dispatch board.
+
+**Improvement for Red Taxi:** When a job is rejected, show which driver rejected it (e.g. `[R: Andy Owen]`) so the operator knows who to follow up with.
+
+---
+
+## 17. Driver Job Offer Channels
+
+Jobs can be offered to drivers through three distinct channels:
+
+### 1. Local SMS Gateway (Legacy)
+- Backend publishes message to RabbitMQ
+- Android device polls queue every ~30 seconds
+- Android sends SMS to driver
+- Used because it's cheaper than provider SMS
+- **Red Taxi:** Replace with direct Twilio SMS or keep as cost-saving option for tenants
+
+### 2. WhatsApp via Twilio
+- Driver receives formatted WhatsApp message with job details
+- Driver replies with text: "Accept" or "Reject"
+- System parses reply and updates booking state
+- Managed via `WhatsAppController.RecieveReply`
+
+### 3. Push Notification (Driver App)
+- FCM push notification sent to driver's registered device
+- Driver opens app, sees job details, taps Accept or Reject
+- Most reliable channel for real-time response
+
+Tenants configure which channels to use per event type via `MessagingNotifyConfig`.
+
+---
+
+## 18. Job Offer Retry Behaviour
+
+When a driver doesn't respond to a job offer, the system can retry.
+
+### Configurable Settings (per tenant)
+- **Retry count**: number of attempts (default: 3)
+- **Retry delay**: seconds between attempts (default: 30)
+- **Retry enabled**: toggle on/off
+
+### Escalation
+- If driver ignores all retries → job returned to unallocated pool
+- If driver repeatedly rejects or ignores jobs → driver may be **temporarily banned** from receiving offers
+- Ban duration and threshold configurable per tenant
+
+### Logging
+Every offer attempt is logged:
+- Which driver was offered
+- Which channel (SMS/WhatsApp/Push)
+- Offer timestamp
+- Response (Accept/Reject/Timeout)
+- Response timestamp
+
+This feeds into the `JobOffer` and `TurnDown` tables.
+
+---
+
+## 19. Configurable Driver Status Flow
+
+Different tenants (or even different accounts within a tenant) may require different driver status progressions.
+
+### Minimal Flow
+```
+Accept → Complete
+```
+Used by: small operators, cash jobs, simple workflows.
+
+### Extended Flow
+```
+Accept → On Route → Arrived → Passenger Onboard → Complete
+```
+Used by: account customers, airport transfers, compliance-heavy contracts.
+
+### Configuration
+- Tenant-level default flow
+- Account-level override (some accounts mandate full status tracking)
+- Driver app adapts to show only the required status buttons
+
+---
+
+## 20. Account Invoice Batch Processing
+
+### Batch Pricing Logic
+When generating invoices for account customers, the system groups journeys by:
+- Passenger name
+- Pickup postcode area
+- Journey grouping rules (e.g. same route = combine)
+
+### Draft Review
+1. Operator selects account + date range
+2. System generates draft invoice with grouped journeys
+3. Operator reviews and can adjust individual line items
+4. Operator approves → invoice finalised and PDF generated
+5. Invoice sent to account contact
+
+### Rebilling
+If a journey was incorrectly priced or credited:
+1. Credit note issued against original invoice
+2. Journey can be rebilled at corrected price
+3. New invoice generated for rebilled journeys
+4. Full audit trail maintained
+
+---
+
+## 21. Card Processing Fee Handling
+
+When customers pay via card (payment link):
+- Revolut/Stripe charges a processing fee
+- This fee is deducted from the **driver's balance** (not the operator)
+- System must track:
+  - Tenant-level card fee percentage
+  - Per-transaction fee amount
+  - Driver deduction records
+  - Net driver payout after fees
