@@ -716,3 +716,85 @@ Every availability change is logged: Date, The Change description, Changed On ti
 ### Global Message (broadcast to all drivers)
 - Simple modal: message text + Send Message
 - Sends to ALL active drivers simultaneously
+
+---
+
+## 25. Account Tariff Configuration (from screenshots)
+
+Account tariffs have **separate rates for account price and driver price** — this is how the dual-price model works in practice.
+
+### Actual Ace Account Tariffs
+
+| Name | Acc Initial | Driver Initial | Acc First Mile | Driver First Mile | Acc Additional Mile | Driver Additional Mile |
+|------|-------------|---------------|----------------|-------------------|---------------------|----------------------|
+| Meter + Admin | £5.00 | £4.00 | £2.00 | £1.40 | £3.15 | £2.35 |
+| Meter Tariff | £0.00 | £0.00 | £5.00 | £4.08 | £3.00 | £2.55 |
+| School Tariff | £0.00 | £0.00 | £4.80 | £4.80 | £3.00 | £2.20 |
+
+### Key Insight
+Each account tariff defines TWO price curves: what the account pays and what the driver earns. The difference is the operator margin. This is calculated per-mile, not as a flat percentage. For example on Meter + Admin: account pays £3.15/additional mile, driver gets £2.35 — that's a £0.80/mile operator margin.
+
+This confirms the pricing model: account tariffs override the default tariffs AND define the driver/account split at the tariff level, not per-booking.
+
+---
+
+## 26. Invoice Processor Detail (from screenshots)
+
+### Invoice Processor (Individual Jobs)
+Filter by: Account dropdown, Date Range, Auto Email Invoices toggle.
+
+Job table columns: Date, Acc#, Driver#, Pickup, Destination, Passenger, Pax, Has Vias, Waiting, Waiting Charge, Actual Miles, Driver £, Journey Charge, Parking, Total, Price.
+
+Per-row actions: Post (green grid icon), Email (blue envelope), Cancel (red trash).
+
+"Post All Priced" button to batch-post all priced jobs.
+
+Expandable rows show: Booking #, Vias list, Details.
+
+### Invoice Processor (Grouped — "Grp")
+Two modes: **Singles** and **Shared**.
+
+**Singles tab**: Groups jobs by passenger name. Expandable passenger rows showing their individual journeys. Columns: Id#, Date, Acc#, Driver#, Pax, Vias, Waiting, Wait. Charge, Actual Miles, Driver £...
+
+**Shared tab**: Groups jobs by **route** (Pickup ↔ Destination). Shows route as expandable header (e.g. "6 COBHAM ROAD, BLANDFORD FORUM ↔ HARBOUR VALE SCHOOL, SHERBORNE"). Each route group has "Price All" and "Post All Priced" buttons. Expanded rows show: Id#, Date, Acc#, Passengers, PAX, Pickup, Destination, Driver#, Vias, Journey Miles, Vias Count, Driver, Account Price, Cancel.
+
+This is the batch grouping logic — shared rides on the same route can be priced together at a group rate.
+
+---
+
+## 27. Billing & Payments Navigation (from screenshots)
+
+```
+Billing & Payments
+├── Driver
+│   ├── Statement Processing
+│   └── Statement History
+└── Account
+    ├── Invoice Processor          ← individual job pricing + posting
+    ├── Invoice Processor (Grp)    ← grouped by passenger (Singles) or route (Shared)
+    ├── Invoice History
+    ├── Credit Invoice
+    ├── Credit Journeys
+    └── Credit Notes
+```
+
+---
+
+## 28. Message Settings Configuration (from screenshots)
+
+Each messaging event has three channel options: **None**, **WhatsApp**, **Text Message** (radio buttons — one channel per event).
+
+### Configured Events (Ace current settings)
+
+| Event | Current Channel |
+|-------|----------------|
+| DRIVER - ON ALLOCATE | WhatsApp |
+| DRIVER - UN-ALLOCATE | WhatsApp |
+| DRIVER - ON AMEND BOOKING | Text Message |
+| DRIVER - ON CANCEL BOOKING | Text Message |
+| CUSTOMER - ON ALLOCATE | Text Message |
+| CUSTOMER - UN-ALLOCATE | Text Message |
+| CUSTOMER - ON AMEND BOOKING | None |
+| CUSTOMER - ON CANCEL BOOKING | (visible, likely None or Text) |
+
+Each event is independently configurable. This maps directly to the `MessagingNotifyConfig` entity.

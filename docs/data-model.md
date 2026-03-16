@@ -257,7 +257,7 @@ All existing entities get a `TenantId GUID` column with a global query filter.
 |--------|-------------|---------|
 | AccountInvoice | 49 | Generated invoices for accounts |
 | AccountPassenger | — | Named passengers on an account |
-| AccountTariff | 31 | Per-account tariff overrides |
+| AccountTariff | 31 | Per-account tariff overrides — has DUAL columns: Account Initial/FirstMile/AdditionalMile AND Driver Initial/FirstMile/AdditionalMile (confirmed from screenshots) |
 | BookingChangeAudit | 39 | Audit trail for booking edits |
 | CompanyConfig | 35 | Tenant-level settings (becomes tenant config) |
 | CreditNote | 41 | Invoice credit notes |

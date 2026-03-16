@@ -695,3 +695,77 @@ Full-page view with:
 - Driver List table below map: #, Name, Reg No, Last Updated (timestamp), Speed (mph)
 - Drivers update position every 5-10 seconds
 - Speed calculated from GPS data
+
+---
+
+## 32. Reports Navigation (from screenshots)
+
+Complete reports menu structure:
+
+```
+Reports
+├── Driver Reports
+│   ├── Availability Report
+│   ├── Expenses Report
+│   └── Earning Report
+├── Bookings
+│   ├── Turndown History
+│   ├── Airport Runs
+│   ├── Duplicate Bookings
+│   ├── Count By Scope
+│   ├── Top Customer
+│   ├── Pickups By Postcode
+│   ├── By Vehicle Type
+│   ├── Average Duration
+│   └── Growth By Period
+└── Financial
+    ├── Payouts By Month
+    ├── Revenue By Month
+    ├── Profitability On Invoice
+    ├── Total Profitability By Period
+    ├── Profitability By DateRange
+    └── QR Code Adverts
+```
+
+### Airport Runs Report
+Shows airport journeys with period filter (Last 1/3/6/12 Months). Table: Driver, Date, Pickup, Destination, Price. Below the summary table: "Airport Journeys - 1 Month" detail grouped by driver (expandable), showing Date, Journey, Price.
+
+Example prices visible: Heathrow Terminal 3 = £255, Heathrow Terminal 5 = £235, Bristol Airport = £128-£156, Bournemouth Airport = £110. These are clearly fixed/zone prices for airport routes.
+
+---
+
+## 33. User Settings Menu
+
+Profile dropdown (top-right, click avatar) shows:
+- User name + "Pro" badge (role indicator)
+- **Dark Mode** toggle
+- **Dark Sidebar** toggle
+- **Notifications** toggle
+- **Mute Notifications** toggle
+- **Ticket Raise** link
+- **Logout**
+
+The dispatch console supports dark mode — the Blazor rebuild must also support light/dark theme switching.
+
+---
+
+## 34. Import Wizard — Ace Data to Migrate
+
+Based on all screenshots, the import wizard must migrate:
+
+| Data | Count (Ace) | Priority |
+|------|-------------|----------|
+| Accounts | 49 | P0 |
+| Account Tariffs | 3 | P0 |
+| Standard Tariffs | 3 | P0 |
+| Drivers + Profiles | ~22 active | P0 |
+| Local POIs | 451 | P0 |
+| Bookings (historical) | 135,000+ (based on booking IDs) | P1 |
+| Booking Vias | Unknown | P1 |
+| Account Passengers | Unknown | P0 |
+| Invoices + Statements | Unknown | P1 |
+| Credit Notes | Unknown | P1 |
+| Message Settings | 1 config set | P0 |
+| Company Settings | 1 config set | P0 |
+| Driver Availability templates | Recurring patterns | P1 |
+| Users (operator logins) | ~5-10 | P0 |
