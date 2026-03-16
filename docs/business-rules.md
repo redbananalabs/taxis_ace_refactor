@@ -646,3 +646,73 @@ When customers pay via card (payment link):
   - Per-transaction fee amount
   - Driver deduction records
   - Net driver payout after fees
+
+---
+
+## 22. Actual Ace Tariff Configuration (from screenshots)
+
+The legacy Ace system has exactly three tariffs:
+
+| Tariff | Name | When | Initial Charge | First Mile | Additional Mile |
+|--------|------|------|---------------|------------|-----------------|
+| Tariff 1 | Day Rate | 7am to 10pm | £0.00 | £4.80 | £3.00 |
+| Tariff 2 | Day Rate | 10pm to 7am, Sundays, Bank Holidays (except where T3 applies) | £0.00 | £7.20 | £4.50 |
+| Tariff 3 | Day Rate | Christmas Day, Boxing Day, New Years Day, plus from 6pm on Christmas Eve and New Years Eve | £0.00 | £9.60 | £6.00 |
+
+### Tariff Selection Logic
+- System determines which tariff applies based on the booking pickup date/time
+- Time-of-day and day-of-week rules determine Tariff 1 vs 2
+- Specific holiday dates trigger Tariff 3 (overrides T1 and T2)
+- Account tariffs can override these defaults entirely
+
+### Price Formula (confirmed from tariff data)
+```
+Price = InitialCharge + FirstMileCharge + (AdditionalMiles × AdditionalMileCharge)
+```
+Where:
+- First mile is charged at the FirstMileCharge rate
+- Every mile after the first is charged at AdditionalMileCharge
+- No initial charge in current Ace config (but field exists for other tenants)
+
+---
+
+## 23. Availability Preset Types
+
+From the Availability page, operators can set availability using preset buttons:
+
+| Preset | Description |
+|--------|-------------|
+| Custom | Operator enters custom time range |
+| SR AM Only | School run AM shift only |
+| SR PM Only | School run PM shift only |
+| SR Only | School run (both AM and PM) |
+| UNAVAILABLE (ALL DAY) | Driver marked unavailable for entire day |
+
+### Multiple Blocks Per Driver
+A driver can have multiple availability blocks on the same day. Example:
+- Jean Williams: 07:30-09:15 (AM SR) + 14:30-16:15 (PM SR)
+
+### Availability Tags
+Each block can have descriptive tags shown in the Details column:
+- `(AM School Only)` — morning school run only
+- `(Custom Set Manually)` — operator override
+- `(+/-)` — approximate/flexible times
+- `(AM SR)` — AM school run
+- `(PM SR)` — PM school run
+
+### Availability Audit Log
+Every availability change is logged: Date, The Change description, Changed On timestamp, Changed by User, Driver #. Filterable by driver and date.
+
+---
+
+## 24. Driver Messaging
+
+### Direct Message (to selected drivers)
+- Modal shows all drivers with colour-coded rows and checkboxes
+- Operator can multi-select drivers (searchable list)
+- Enter message text
+- Send Message → delivers via configured channel (Push/SMS/WhatsApp)
+
+### Global Message (broadcast to all drivers)
+- Simple modal: message text + Send Message
+- Sends to ALL active drivers simultaneously

@@ -617,3 +617,81 @@ AI analyses booking data and demand patterns to suggest:
 - New SEO pages to auto-generate
 - Pricing optimisation opportunities (routes where competitors charge more)
 - Time-of-day demand patterns for driver shift planning
+
+---
+
+## 29. Admin Navigation Structure (from desktop screenshots)
+
+The full left sidebar navigation of the legacy dispatch console:
+
+```
+Dashboards
+Booking & Dispatch          ← main dispatch screen (split-screen layout)
+Tracking                    ← live GPS map + driver list
+Availability                ← driver availability grid with presets
+Availability Logs           ← audit trail of availability changes
+Local POIs                  ← points of interest (451 in Ace)
+Bookings ▸
+  ├── Web Bookings          ← pending web portal bookings
+  ├── Global Search         ← advanced multi-field booking search
+  ├── Audit View            ← booking action history
+  ├── Card Bookings         ← bookings paid by card
+  ├── Cancel Range          ← bulk cancel bookings in date range
+  └── Cancel Range Report   ← report on cancelled bookings
+Accounts                    ← corporate account list (49 in Ace)
+Driver ▸
+  ├── Driver List           ← all drivers with details
+  └── Expiry's              ← document expiry tracking
+Tariffs                     ← tariff configuration (3 tariffs in Ace)
+Account Tariffs             ← per-account tariff overrides
+Billing & Payments ▸        ← invoices, statements, payment tracking
+Reports ▸                   ← all reporting modules
+Company Settings            ← tenant configuration
+Message Settings            ← messaging template and channel config
+Utilities                   ← miscellaneous tools
+```
+
+---
+
+## 30. Dashboard KPIs
+
+The dashboard shows real-time operational metrics:
+
+### Driver Earnings Tables
+- **Today's Totals**: per-driver table with Jobs, Cash, Acc, Rank, Cash Comms, Rank Comms, Total, Total Comms. Searchable. Shows Total Earnings and Total Commissions at bottom.
+- **Week's Totals**: same structure for current week
+
+### Booking Stats
+- Table: Booked By (operator name), Cash Jobs Booked, Account Jobs Booked, Rank Jobs Booked, Total Booked. Searchable.
+
+### KPI Cards (real-time counts)
+| Card | Description | Example |
+|------|-------------|---------|
+| Today Bookings | Total bookings for today | 69 |
+| Jobs Booked Today | New jobs created today | 30 |
+| Drivers | Active driver count | 22 |
+| POIs | Total points of interest | 451 |
+| Today Unallocated | Bookings without driver | 4 |
+| Day New Customer | New customers today | 29 |
+| Week New Customer | New customers this week | 136 |
+| Month New Customer | New customers this month | 455 |
+| Day Returning Customer | Returning customers today | 11 |
+| Week Returning Customer | Returning customers this week | 47 |
+| Month Returning Customer | Returning customers this month | 176 |
+
+### Top Bar Actions
+- Direct Message button → send to selected drivers
+- Global Message button → broadcast to all drivers
+- SMS Heartbeat indicator (shows last SMS gateway ping time — monitors Android SMS device health)
+
+---
+
+## 31. Live Tracking Page
+
+Full-page view with:
+- Google Map showing live driver positions (each driver has unique icon/colour marker)
+- Map/Satellite toggle
+- F12 for fullscreen mode
+- Driver List table below map: #, Name, Reg No, Last Updated (timestamp), Speed (mph)
+- Drivers update position every 5-10 seconds
+- Speed calculated from GPS data
