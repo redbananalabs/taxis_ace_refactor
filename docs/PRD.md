@@ -421,3 +421,139 @@ For v1: WhatsApp remains one-way notifications only. Chatbot booking is Phase 2/
 | 4 | Revolut API version and webhook setup details | Can extract from legacy code |
 | 5 | Flight tracking integration for airport pickups | Pending — future phase? |
 | 6 | Live driver map timing — Phase 1 or later? | Pending |
+
+---
+
+## 17. Master Tenant / Network Dispatch (Phase 5+)
+
+The system will support a Master Tenant concept — a central marketplace that receives bookings from shared booking channels and distributes them to participating operators.
+
+### Flow
+1. Customer books through the marketplace (e.g. "First Taxis" brand)
+2. Master tenant receives the booking
+3. Job broadcast to participating operators based on rules (geographic radius, fastest acceptance, operator preference)
+4. Operators accept or reject
+5. Accepted operator dispatches from their fleet
+
+First real-world use case: **First Taxis** — a network brand that distributes jobs to member taxi companies.
+
+This extends the Partner Network model — the master tenant is essentially a specialised tenant that only distributes, never fulfils directly.
+
+---
+
+## 18. Telephony / Caller ID Integration
+
+### Caller ID Booking Pop
+When an inbound call is answered, the system:
+1. Detects the caller's phone number
+2. Looks up customer in the Customer Directory
+3. If found: displays customer details + current bookings + previous bookings
+4. Operator can select a previous booking and click "Confirm" to repeat it instantly
+5. If not found: opens a new booking form pre-populated with the phone number
+
+### VoIP Integration
+The platform integrates with external VoIP providers (not hosting its own):
+- 3CX
+- V4Voip
+- Other SIP-based providers
+
+Requirements: detect inbound caller number, trigger booking pop, identify which operator answered.
+
+Must work on both desktop and mobile dispatch interfaces.
+
+---
+
+## 19. Multi-Mode Dispatch
+
+The platform supports three dispatch modes to suit different operator types:
+
+### Grid Dispatch
+Traditional dispatch board showing open jobs, driver status, and assignments. Used by busy dispatch offices with multiple operators.
+
+### Diary / Scheduler Dispatch
+Calendar-based dispatch (the current Ace system's primary mode). Used for airport bookings, pre-bookings, school contracts, account journeys. Split-screen: booking form left, scheduler/map right.
+
+### Mobile Dispatch
+Designed for rural operators and owner-drivers who answer calls while driving. Features: fast booking creation, minimal typing, caller ID pop, repeat booking shortcuts, view active bookings. This is a simplified mobile-first interface, not the full dispatch console.
+
+---
+
+## 20. AI Website Builder & Marketing Automation (Phase 6+)
+
+### AI Website Builder
+Each tenant can generate a branded booking website automatically, powered by AI tools (e.g. Lovable). Capabilities: automatic design using tenant branding, embedded booking engine, SEO-optimised structure. This is a paid module.
+
+### SEO Content Automation
+The system generates ongoing SEO content: service pages, location pages, airport transfer route pages (e.g. "Taxi Bath to Heathrow", "Taxi Gillingham to Bristol Airport"). Content generation runs on configurable schedule (weekly/monthly).
+
+### Social Media Automation
+AI-generated social media posts for Facebook, Instagram, and X. Configurable posting frequency (weekly/bi-weekly/monthly). Content based on routes served, testimonials, seasonal messaging.
+
+---
+
+## 21. External Booking Channel Integrations (Phase 6+)
+
+The platform integrates with third-party booking sources:
+- Booking.com
+- Hotel booking systems
+- Travel platforms
+- Airport transfer aggregators
+
+Bookings flow directly into dispatch. Can be used by master tenant or individual tenants.
+
+---
+
+## 22. Provider Configuration System
+
+Tenants can either use their own provider accounts or platform-bundled services:
+
+| Service | Own Provider | Platform Bundled |
+|---------|-------------|-----------------|
+| SMS | TextLocal, own Twilio | Platform SMS bundle |
+| Address lookups | Own Google Maps key, own postcode API | Platform address service |
+| Email | Own SendGrid | Platform email service |
+| Payments | Own Stripe/Revolut | Platform payment processing |
+| Maps | Own Google Maps | Platform maps |
+
+This enables the SaaS to offer bundled services at margin while letting larger operators use their own accounts.
+
+---
+
+## 23. Keyboard Shortcuts (Dispatch Console)
+
+The desktop dispatch console supports keyboard shortcuts for speed:
+
+| Key | Action |
+|-----|--------|
+| F1 | Switch to Map view |
+| F2 | Switch to Scheduler view |
+| F3 | Open Messages |
+
+Additional shortcuts TBD based on operator feedback.
+
+---
+
+## 24. Dispatch Console Desktop Layout
+
+Split-screen layout:
+- **Left panel**: Booking form (new booking / edit booking)
+- **Right panel**: Tabbed view with MAP, SCHEDULER, LOGS, COA ENTRIES
+
+### Map Tab
+Shows Google Maps route A→B with journey cost panel displaying:
+- Charge From Base (Yes/No)
+- Journey Time
+- Journey Mileage with dead miles vs trip miles breakdown
+- Applied tariff name
+
+### Scheduler Tab
+Day view calendar with driver columns, booking blocks, COA banners at top. Toggles: Show Allocated, Show Completed, Merge Mode. Views: Day / Agenda.
+
+### Logs Tab
+Two sub-tabs: Booking Logs (action history) and Action Logs. Paginated table: DateTime, Booking#, User, Action. Actions tracked: Booking Created, Allocated, Updated, Marked as Completed, Driver Arrived (Sent).
+
+### COA Entries Tab
+Table of cancel-on-arrival records: COA Date/Time, Journey Date/Time, Pickup Address, Passenger, Account number.
+
+### Top Bar
+Ticket Raise, NO (turn-down), Text Message, Search, notification bell, Logout. Confirm SA (Confirm Soft Allocates) button.

@@ -427,3 +427,75 @@ Weights are tenant-configurable. Operators always see the top 3 recommendations 
 - Custom greeting message
 - Auto-accept bookings or require operator approval
 - Operating hours (outside hours: bot takes booking, flags for next-day confirmation)
+
+---
+
+## 13. Account Web Booker Portal (from desktop screenshots)
+
+The account customer portal is a separate branded web app.
+
+### Portal Home
+Five main actions available to account customers:
+1. **Create New Booking** — booking form with Address/Existing Passenger toggle
+2. **Booking Request History** — paginated table of all submitted bookings (Accepted/Rejected status, Duplicate button)
+3. **Active Bookings** — table of upcoming bookings with Amend and Cancel This Only buttons
+4. **Add New Passenger** — create named passengers with description, address, postcode, phone, email
+5. **Existing Passengers** — searchable passenger list (name, description, address, postcode, phone, actions)
+
+### Account Login
+Authenticated via Account Number + Password (not email-based). Tenant-branded login page.
+
+### Booking Form (Account Portal)
+- Pickup Time / Arrived By radio toggle
+- Date and Time pickers
+- Repeat Booking button + Return toggle
+- Address entry: toggle between "Address" (manual) and "Existing Passenger" (select from passenger list — auto-fills address)
+- Pickup address, postcode, destination address, postcode
+- Swap addresses button
+- Booking details (free text)
+- Name, Email, Phone, Passengers dropdown
+- Cancel / Send buttons
+
+### Passenger Management
+Account customers manage their own passenger lists:
+- Passenger Name (required)
+- Description (required — e.g. "Home Address", "Office")
+- Address + Postcode (required)
+- Phone + Email (optional)
+- Passengers can be deleted from the list
+
+This maps to the `AccountPassenger` entity. Each passenger effectively acts as a saved address with contact details.
+
+### Booking Request Status
+Web bookings submitted by accounts go through the approval flow:
+- **Accepted** — converted to real booking, enters dispatch
+- **Rejected** — with reason communicated to account customer
+- Accepted bookings can be duplicated from history
+
+### Active Booking Actions
+- **Amend** — submit amendment request (operator reviews)
+- **Cancel This Only** — cancel individual booking (for recurring bookings, only cancels the selected instance)
+
+---
+
+## 14. Phone Lookup / Caller ID Pop Rules
+
+### Lookup Flow (from desktop screenshots)
+1. Phone number entered or detected via caller ID
+2. System searches bookings by phone number
+3. Popup shows: caller number, two tabs (Current Bookings / Previous Bookings)
+4. **Current Bookings** tab: today's and future bookings for this number
+5. **Previous Bookings** tab: historical bookings with date, pickup, destination, name, price
+6. Operator can select any previous booking row and click **Confirm** to create a repeat booking with same addresses
+7. **Close** dismisses without action
+
+### Search Bookings (from desktop screenshots)
+Advanced search modal with fields:
+- Booking ID
+- Pickup Address + Pickup Postcode
+- Destination Address + Destination Postcode
+- Passenger name
+- Phone Number
+- Details (free text)
+
+All fields are optional — search matches any combination provided.
