@@ -155,26 +155,72 @@ When a booking is allocated, the `AllocateBookingHandler` publishes a `BookingAl
 
 ---
 
-## 5. Deployment Architecture (v1 — VPS)
+## 5. Deployment Architecture (v1 — Hetzner VPS)
 
+### Server Spec
+- **Provider:** Hetzner Cloud
+- **Plan:** CX32 (4 vCPU, 8GB RAM, 80GB SSD) — ~€7/month
+- **OS:** Ubuntu 24.04 LTS
+- **Location:** Falkenstein (EU) or Ashburn (US) — EU preferred for UK data residency
+- **Extras:** Hetzner Firewall (free), automated backups (€1.20/month)
+
+### Docker Compose Stack
+```yaml
+# docker-compose.yml
+services:
+  nginx:
+    image: nginx:alpine
+    ports: ["80:80", "443:443"]
+    volumes: [./nginx.conf:/etc/nginx/nginx.conf, ./certs:/etc/ssl]
+    depends_on: [redtaxi-api]
+
+  redtaxi-api:
+    image: ghcr.io/redbananalabs/redtaxi:latest
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=RedTaxi;...
+      - Redis__ConnectionString=redis:6379
+    depends_on: [sqlserver, redis]
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SQL_PASSWORD}
+    volumes: [sqldata:/var/opt/mssql]
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redisdata:/data]
+
+volumes:
+  sqldata:
+  redisdata:
 ```
-VPS (Docker Compose)
-├── nginx                    # Reverse proxy, SSL termination
-├── redtaxi-api              # .NET 8 API (serves both API + Blazor Server)
-├── redtaxi-portal           # Customer booking portal (could be same container or separate)
-├── sqlserver                # SQL Server 2022 container
-├── redis                    # Redis 7 container
-└── (optional) seq/grafana   # Logging/monitoring
+
+### Domains
+- `dispatch.redtaxi.io` → nginx → redtaxi-api (Blazor Server dispatch console)
+- `api.redtaxi.io` → nginx → redtaxi-api (REST API)
+- `book.acetaxisdorset.co.uk` → nginx → redtaxi-api (customer portal, tenant-branded)
+
+SSL via Let's Encrypt (certbot auto-renewal).
+
+### CI/CD Pipeline (GitHub Actions)
+```
+Push to main
+  → Build .NET 8
+  → Run tests
+  → Build Docker image
+  → Push to GitHub Container Registry (ghcr.io)
+  → SSH to Hetzner VPS
+  → docker compose pull && docker compose up -d
 ```
 
-### Ports
-- 443 → nginx → redtaxi-api (Blazor + API on same host)
-- 443/portal → nginx → redtaxi-portal
-- 1433 internal only (SQL Server)
-- 6379 internal only (Redis)
+Single YAML file: `.github/workflows/deploy.yml`. No Kubernetes, no Terraform. Blue-green deployment via nginx upstream port switching.
 
-### CI/CD
-GitHub Actions: build → test → Docker image → push to container registry → SSH deploy to VPS. Blue-green deployment via nginx upstream switching.
+### Backup Strategy
+- Hetzner automated server snapshots (daily, €1.20/month)
+- SQL Server backup job via Hangfire (nightly, to Hetzner Object Storage)
+- Redis AOF persistence (survives container restart)
 
 ---
 

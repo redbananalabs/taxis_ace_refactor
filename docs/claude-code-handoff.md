@@ -23,20 +23,37 @@ Extract exact business logic from these god services before writing any new code
 For each service: produce a document listing every public method, what it does, which entities it touches, and which MediatR handler it should become.
 
 ### Step 2: Create the Solution Structure
+
+The repo should be organised as follows (legacy code copied in for reference):
+
 ```
-src/
-├── RedTaxi.sln
-├── RedTaxi.API/                    (.NET 8 Web API + Blazor Server host)
-├── RedTaxi.Application/            (MediatR handlers by feature)
-├── RedTaxi.Domain/                 (Entities, enums, events, interfaces)
-├── RedTaxi.Infrastructure/         (EF Core, Redis, external APIs)
-├── RedTaxi.Blazor/                 (Dispatch console - Blazor Server)
-├── RedTaxi.WebPortal/              (Customer booking portal)
-└── tests/
-    ├── RedTaxi.UnitTests/
-    ├── RedTaxi.IntegrationTests/
-    └── RedTaxi.ArchTests/
+redtaxi/
+├── legacy/                         ← existing Ace projects (READ-ONLY reference)
+│   ├── TaxiDispatch.API/
+│   ├── TaxiDispatch.Lib/
+│   ├── TaxiDispatch.Tests/
+│   ├── ace-admin-ui/               ← React dispatch console (if available)
+│   ├── ace-sms-gateway/            ← Android SMS gateway (if available)
+│   └── ace-driver-app/             ← Driver app (if available)
+├── src/
+│   ├── RedTaxi.sln
+│   ├── RedTaxi.API/                (.NET 8 Web API + Blazor Server host)
+│   ├── RedTaxi.Application/        (MediatR handlers by feature)
+│   ├── RedTaxi.Domain/             (Entities, enums, events, interfaces)
+│   ├── RedTaxi.Infrastructure/     (EF Core, Redis, external APIs)
+│   ├── RedTaxi.Blazor/             (Dispatch console - Blazor Server + Syncfusion)
+│   └── RedTaxi.WebPortal/          (Customer booking portal)
+├── tests/
+│   ├── RedTaxi.UnitTests/
+│   ├── RedTaxi.IntegrationTests/
+│   └── RedTaxi.ArchTests/
+├── docs/                            ← already populated (8 docs + chatgpt-source)
+├── docker-compose.yml
+├── .github/workflows/deploy.yml
+└── .gitignore
 ```
+
+Claude Code should reference `legacy/` when extracting business logic but NEVER modify files in that folder.
 
 ### Step 3: Build Phase 1 Features
 In this order:
